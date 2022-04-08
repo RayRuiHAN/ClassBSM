@@ -1,7 +1,7 @@
 # ClassBSM
 Python Class for BSM function
 
-Exmaple:
+Example:
 
 if __name__ == '__main__':
     bsm = BSM(asset_price=4815.226, exercise_price=4500, remaining=0.0877, sigma=0.2643, rf_rate=0.01)
