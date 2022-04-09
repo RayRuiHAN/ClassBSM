@@ -5,7 +5,7 @@ from scipy.stats import norm
 
 class BSM(object):
 
-    def __init__(self, asset_price, call_put, exercise_price, remaining, sigma, rf_rate):
+    def __init__(self, asset_price, exercise_price, remaining, call_put='C', sigma=0.5, rf_rate=0.1):
         """
         asset_price: self.S
         exercise_price: self.K
@@ -70,3 +70,4 @@ if __name__ == '__main__':
     print(bsm.Vega)
     print(bsm.Rho)
     print(bsm.vol(target_price=354.205))
+    print(BSM(asset_price=4815.226, call_put='C', exercise_price=4500, remaining=0.0877, rf_rate=0).vol(target_price=354.205))
