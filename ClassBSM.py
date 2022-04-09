@@ -60,7 +60,7 @@ class BSM(object):
 
 
 if __name__ == '__main__':
-    bsm = BSM(asset_price=4815.226, call_put='C', exercise_price=4500, remaining=0.0877, sigma=0.2643, rf_rate=0)
+    bsm = BSM(asset_price=4815.226, exercise_price=4500, remaining=0.0877, call_put='C', sigma=0.2643, rf_rate=0)
     print(bsm.d1)
     print(bsm.d2)
     print(bsm.Price)
@@ -70,4 +70,4 @@ if __name__ == '__main__':
     print(bsm.Vega)
     print(bsm.Rho)
     print(bsm.vol(target_price=354.205))
-    print(BSM(asset_price=4815.226, call_put='C', exercise_price=4500, remaining=0.0877, rf_rate=0).vol(target_price=354.205))
+    print(BSM(asset_price=4815.226, exercise_price=4500, remaining=0.0877, call_put='C', rf_rate=0).vol(target_price=354.205))
