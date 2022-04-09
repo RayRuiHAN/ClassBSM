@@ -5,7 +5,7 @@ from scipy.stats import norm
 
 class BSM(object):
 
-    def __init__(self, asset_price, exercise_price, remaining, sigma, rf_rate):
+    def __init__(self, asset_price, call_put, exercise_price, remaining, sigma, rf_rate):
         """
         asset_price: self.S
         exercise_price: self.K
@@ -19,36 +19,39 @@ class BSM(object):
         self.T = remaining
         self.q = sigma
         self.r = rf_rate
+        self.call_put = call_put
         self.d1 = (math.log(self.S / self.K) + (self.r + 0.5 * self.q * self.q) * self.T) / (
                 self.q * math.sqrt(self.T))
         self.d2 = self.d1 - self.q * math.sqrt(self.T)
-        self.CallPrice = norm.cdf(self.d1) * self.S - norm.cdf(self.d2) * self.K * math.exp(-self.r * self.T)
-        self.PutPrice = self.K * math.exp(-self.r * self.T) - self.S + self.CallPrice
-        self.CallDelta = norm.cdf(self.d1)
-        self.PutDelta = norm.cdf(self.d1) - 1
         self.Gamma = norm.pdf(self.d1) / (self.S * self.q * math.sqrt(self.T))
         self.Vega = self.S * norm.pdf(self.d1) * math.sqrt(self.T)
-        self.CallTheta = -1 * (self.S * norm.pdf(self.d1) * self.q) / (
-                2 * math.sqrt(self.T)) - self.r * self.K * math.exp(-self.r * self.T) * norm.cdf(self.d2)
-        self.PutTheta = -1 * (self.S * norm.pdf(self.d1) * self.q) / (
-                2 * math.sqrt(self.T)) + self.r * self.K * math.exp(-self.r * self.T) * norm.cdf(-1 * self.d2)
-        self.CallRho = self.T * self.K * math.exp(-self.r * self.T) * norm.cdf(self.d2)
-        self.PutRho = -1 * self.T * self.K * math.exp(-self.r * self.T) * norm.cdf(-1 * self.d2)
 
-    def vol(self, target_price, call_put, max_iterations=200, precision=1.0e-5):
+        if call_put == 'C':
+            self.Price = norm.cdf(self.d1) * self.S - norm.cdf(self.d2) * self.K * math.exp(-self.r * self.T)
+            self.Delta = norm.cdf(self.d1)
+            self.Theta = -1 * (self.S * norm.pdf(self.d1) * self.q) / (
+                2 * math.sqrt(self.T)) - self.r * self.K * math.exp(-self.r * self.T) * norm.cdf(self.d2)
+            self.Rho = self.T * self.K * math.exp(-self.r * self.T) * norm.cdf(self.d2)
+        else:
+            self.Price = self.K * math.exp(-self.r * self.T) - self.S + norm.cdf(self.d1) * self.S \
+                         - norm.cdf(self.d2) * self.K * math.exp(-self.r * self.T)
+            self.Delta = norm.cdf(self.d1) - 1
+            self.Theta = -1 * (self.S * norm.pdf(self.d1) * self.q) / (
+                2 * math.sqrt(self.T)) + self.r * self.K * math.exp(-self.r * self.T) * norm.cdf(-1 * self.d2)
+            self.Rho = -1 * self.T * self.K * math.exp(-self.r * self.T) * norm.cdf(-1 * self.d2)
+
+    def vol(self, target_price, max_iterations=200, precision=1.0e-5):
         q = 0.5
-        s = self.S
-        k = self.K
-        t = self.T
-        r = self.r
+        call_put = self.call_put
         for i in range(0, max_iterations):
-            d1 = (math.log(s / k) + (r + 0.5 * q * q) * t) / (q * math.sqrt(t))
-            d2 = d1 - q * math.sqrt(t)
-            if call_put == 1:
-                price = k * math.exp(-r * t) - s + norm.cdf(d1) * s - norm.cdf(d2) * k * math.exp(-r * t)
+            d1 = (math.log(self.S / self.K) + (self.r + 0.5 * q * q) * self.T) / (q * math.sqrt(self.T))
+            d2 = d1 - q * math.sqrt(self.T)
+            vega = self.S * norm.pdf(d1) * math.sqrt(self.T)
+            if call_put == 'C':
+                price = norm.cdf(d1) * self.S - norm.cdf(d2) * self.K * math.exp(-self.r * self.T)
             else:
-                price = norm.cdf(d1) * s - norm.cdf(d2) * k * math.exp(-r * t)
-            vega = s * norm.pdf(d1) * math.sqrt(t)
+                price = self.K * math.exp(-self.r * self.T) - self.S + norm.cdf(d1) * self.S \
+                        - norm.cdf(d2) * self.K * math.exp(-self.r * self.T)
             diff = target_price - price
             if abs(diff) < precision:
                 return q
@@ -57,17 +60,13 @@ class BSM(object):
 
 
 if __name__ == '__main__':
-    bsm = BSM(asset_price=4815.226, exercise_price=4500, remaining=0.0877, sigma=0.2643, rf_rate=0)
+    bsm = BSM(asset_price=4815.226, call_put='C', exercise_price=4500, remaining=0.0877, sigma=0.2643, rf_rate=0)
     print(bsm.d1)
     print(bsm.d2)
-    print(bsm.CallPrice)
-    print(bsm.PutPrice)
-    print(bsm.CallDelta)
-    print(bsm.PutDelta)
+    print(bsm.Price)
+    print(bsm.Delta)
     print(bsm.Gamma)
+    print(bsm.Theta)
     print(bsm.Vega)
-    print(bsm.CallTheta)
-    print(bsm.PutTheta)
-    print(bsm.CallRho)
-    print(bsm.PutRho)
-    print(bsm.vol(target_price=354.205, call_put=0))
+    print(bsm.Rho)
+    print(bsm.vol(target_price=354.205))
