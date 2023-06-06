@@ -1,4 +1,7 @@
 # ClassBSM
+
+**!!Updated as "BSMSolver"!! This version should not be used**
+
 Python Class for BSM function
 
 Example:
